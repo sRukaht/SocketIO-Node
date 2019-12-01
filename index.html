@@ -1,0 +1,41 @@
+<html>
+    <title>Socket Intangles</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket = io("ws://localhost:4989");
+        socket.on("location", (data) => {
+            console.log("Location Received : ", data);
+            let p = document.createElement("p");
+            p.innerHTML = data.toString() + "\n";
+            document.getElementById("location").appendChild(p);
+        });
+
+        socket.on("noMoreData", (message) => {
+            console.log("All Locations Sent. No more data to receive...");
+            let p = document.createElement("p");
+            p.innerHTML = message.toString() + "\n";
+            document.getElementById("location").appendChild(p);
+        })
+
+        function start() {
+            socket.emit("start", "start kardo");
+        }
+
+        function pause() {
+            socket.emit("pause", "pause kardo");
+        }
+
+        function reset() {
+            console.log("Reseting the stats at server...");
+            document.getElementById("location").innerHTML="";
+            socket.emit("reset", "reset sab kuch");
+        }
+    </script>
+    <body>
+        <h2>Welcome to Intangles!</h2>
+        <button id="start" onclick="start()">Start</button>
+        <button id="pause" onclick="pause()">Stop</button>
+        <button id="reset" onclick="reset()">Reset</button>
+        <p id="location"></p>
+    </body>
+</html>
