@@ -1,0 +1,83 @@
+<html>
+    <title>Socket Intangles</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+            /* Always set the map height explicitly to define the size of the div
+             * element that contains the map. */
+            #map {
+              height: 100%;
+            }
+            /* Optional: Makes the sample page fill the window. */
+            html, body {
+              height: 100%;
+              margin: 0;
+              padding: 0;
+            }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript"
+    src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDT4_QSrKxlwPQYk04elvte3xJsm7Xdfs8&sensor=false"></script>
+    <script type="text/javascript">
+    
+        let socket = io("ws://localhost:4989");
+        PlanCoordinates = []
+        socket.on("location", (data) => {
+            Data = JSON.parse(data)
+            console.log("Location Received : ", Data);
+            let p = document.createElement("p");
+            p.innerHTML = data + "\n";
+            document.getElementById("location").appendChild(p);
+            var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: {lat: 18.985641666666666, lng: 74.57622666666667},
+            mapTypeId: 'terrain'
+            });
+            PlanCoordinates.push(Data)
+            
+            var flightPath = new google.maps.Polyline({
+            path: PlanCoordinates,
+            geodesic: true,
+            strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 10
+            });
+            flightPath.setMap(map);
+        });
+
+        socket.on("noMoreData", (message) => {
+            console.log("All Locations Sent. No more data to receive...");
+            let p = document.createElement("p");
+            p.innerHTML = message.toString() + "\n";
+            document.getElementById("location").appendChild(p);
+        })
+
+        function start() {
+            socket.emit("start", "start kardo");
+        }
+
+        function pause() {
+            socket.emit("pause", "pause kardo");
+        }
+
+        function reset() {
+            console.log("Reseting the stats at server...");
+            document.getElementById("location").innerHTML="";
+            PlanCoordinates.length = 0
+            for (var i = 0; i < map.length; i++ ) {
+                map[i].setMap(null);
+            }
+            map.length = 0;
+            socket.emit("reset", "reset sab kuch");
+        }
+    </script>
+    <body>
+        <div id="map"></div>
+        <h2>Welcome to Intangles!</h2>
+        <button id="start" onclick="start()">Start</button>
+        <button id="pause" onclick="pause()">Stop</button>
+        <button id="reset" onclick="reset()">Reset</button>
+        <p id="location"></p>
+    </body>
+</html>
